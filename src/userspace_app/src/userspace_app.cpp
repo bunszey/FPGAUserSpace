@@ -2,6 +2,9 @@
 #include <sensor_msgs/msg/image.hpp>
 
 #include <cv_bridge/cv_bridge.h>
+#include <vector>
+
+#include <chrono>
 
 class ImageSubscriber : public rclcpp::Node
 {
@@ -21,7 +24,7 @@ class ImageSubscriber : public rclcpp::Node
 					"/image_out",
 					10
 			);
-			timer_ = this->create_wall_timer(300ms, std::bind(&MinimalPublisher::timer_callback, this));
+			timer_ = this->create_wall_timer(std::chrono::milliseconds(300), std::bind(&ImageSubscriber::timer_callback, this));
 
 
 		}
@@ -39,14 +42,18 @@ class ImageSubscriber : public rclcpp::Node
 			cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, msg->encoding);
 			cv::Mat img = cv_ptr->image;
 
-			cv::cvtColor(img, gray_ cv::COLOR_YUV2GRAY_YUY2 );
+			//cv::cvtColor(img, gray_, cv::COLOR_YUV2GRAY_YUY2 );
+			std::vector<cv::Mat> channels(2);
+			cv::split(img, channels);
+
+			gray_ = channels[0];
 	
 			RCLCPP_INFO(this->get_logger(), "Successfully loaded image");
 		}
 
 		void timer_callback(){
-			sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(std_msgs::msg::Header(), "mono16", gray_).toImageMsg();
-			rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr camera_publisher_;->publish(msg);
+			sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(std_msgs::msg::Header(), "mono8", gray_).toImageMsg();
+			camera_publisher_->publish(*msg.get());
         	std::cout << "Published!" << std::endl;
 		}
 
