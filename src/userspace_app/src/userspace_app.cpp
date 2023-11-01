@@ -73,8 +73,7 @@ class ImageSubscriber : public rclcpp::Node
 		}
 
 		void timer_callback(){
-			char vec_gray[DATA_SIZE];
-			vec_gray = gray_.data;
+			char vec_gray[DATA_SIZE] = reinterpret_cast<char*>(gray_.data);
 
 			XExample_Write_in_r_Bytes(&ip_inst, 0, &vec_gray, DATA_SIZE);
 
@@ -87,8 +86,10 @@ class ImageSubscriber : public rclcpp::Node
 			char out[DATA_SIZE];
 			XExample_Read_out_r_Bytes(&ip_inst, 0, out, DATA_SIZE);
 
+			unsigned char vec_out[DATA_SIZE] = reinterpret_cast<unsigned char*>(out);
+			
 			cv::Mat outMat(gray_.rows, gray_.cols, gray_.type());
-			memcpy(outMat.data, out, DATA_SIZE);
+			memcpy(outMat.data, vec_out, DATA_SIZE);
 
 			sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(std_msgs::msg::Header(), "mono8", outMat).toImageMsg();
 			camera_publisher_->publish(*msg.get());
