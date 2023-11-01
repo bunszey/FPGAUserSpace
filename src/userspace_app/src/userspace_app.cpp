@@ -55,6 +55,7 @@ class ImageSubscriber : public rclcpp::Node
 		XExample ip_inst;
 
 		cv::Mat gray_;
+		bool subscribing = false;
 
 		void onImageMsg(const sensor_msgs::msg::Image::SharedPtr msg) {
 			RCLCPP_INFO(this->get_logger(), "Received image!");
@@ -67,17 +68,17 @@ class ImageSubscriber : public rclcpp::Node
 			cv::split(img, channels);
 
 			gray_ = channels[0];
-
+			
 			RCLCPP_INFO(this->get_logger(), "Successfully loaded image");
+			subscribing = true;
 		}
 
 		void timer_callback(){
-			std::cout << "timer_callback!" << std::endl;
-			char * vec_gray = new char[DATA_SIZE]; 
-			vec_gray = reinterpret_cast<char*>(gray_.data);
+			if(!subscribing){return;}
+			std::cout << "gray_.size=" << gray_.rows << "x" gray_.cols << << std::endl;
 
 			std::cout << "XExample_Write_in_r_Bytes!" << std::endl;
-			XExample_Write_in_r_Bytes(&ip_inst, 0, vec_gray, DATA_SIZE);
+			XExample_Write_in_r_Bytes(&ip_inst, 0, gray_.data, DATA_SIZE);
 
 			// Call the IP core function
 			XExample_Start(&ip_inst);
@@ -87,14 +88,8 @@ class ImageSubscriber : public rclcpp::Node
 			while (!XExample_IsDone(&ip_inst));
 
 			std::cout << "XExample_Read_out_r_Bytes!" << std::endl;
-			char * out = new char[DATA_SIZE]; 
-			XExample_Read_out_r_Bytes(&ip_inst, 0, out, DATA_SIZE);
-
-			unsigned char * vec_out = new unsigned char[DATA_SIZE] ;
-			vec_out = reinterpret_cast<unsigned char*>(out);
-			
 			cv::Mat outMat(gray_.rows, gray_.cols, gray_.type());
-			memcpy(outMat.data, vec_out, DATA_SIZE);
+			XExample_Read_out_r_Bytes(&ip_inst, 0, outMat.data, DATA_SIZE);
 
 			sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(std_msgs::msg::Header(), "mono8", outMat).toImageMsg();
 			camera_publisher_->publish(*msg.get());
