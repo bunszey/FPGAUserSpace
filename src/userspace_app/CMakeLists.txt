@@ -22,9 +22,20 @@ find_package(sensor_msgs REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 
+# Add your source files here
 add_executable(userspace_app
 	src/userspace_app.cpp
+    src/xexample.c
+    src/xexample_linux.c
+    src/xexample_sinit.c
 )
+
+# Add the header files to the target_include_directories
+target_include_directories(userspace_app
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
 ament_target_dependencies(userspace_app
 	rclcpp
 	sensor_msgs
