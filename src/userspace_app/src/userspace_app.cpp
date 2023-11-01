@@ -46,7 +46,6 @@ class ImageSubscriber : public rclcpp::Node
 			// Cleanup
 			XExample_DisableAutoRestart(&ip_inst);
 			XExample_Release(&ip_inst);
-			//cleanup_platform();
 		}
 
 	private:
@@ -73,20 +72,26 @@ class ImageSubscriber : public rclcpp::Node
 		}
 
 		void timer_callback(){
-			char vec_gray[DATA_SIZE] = reinterpret_cast<char*>(gray_.data);
+			std::cout << "timer_callback!" << std::endl;
+			char * vec_gray = new char[DATA_SIZE]; 
+			vec_gray = reinterpret_cast<char*>(gray_.data);
 
-			XExample_Write_in_r_Bytes(&ip_inst, 0, &vec_gray, DATA_SIZE);
+			std::cout << "XExample_Write_in_r_Bytes!" << std::endl;
+			XExample_Write_in_r_Bytes(&ip_inst, 0, vec_gray, DATA_SIZE);
 
 			// Call the IP core function
 			XExample_Start(&ip_inst);
 
 			// Wait for the IP core to finish
+			std::cout << "while (!XExample_IsDone(&ip_inst))!" << std::endl;
 			while (!XExample_IsDone(&ip_inst));
 
-			char out[DATA_SIZE];
+			std::cout << "XExample_Read_out_r_Bytes!" << std::endl;
+			char * out = new char[DATA_SIZE]; 
 			XExample_Read_out_r_Bytes(&ip_inst, 0, out, DATA_SIZE);
 
-			unsigned char vec_out[DATA_SIZE] = reinterpret_cast<unsigned char*>(out);
+			unsigned char * vec_out = new unsigned char[DATA_SIZE] ;
+			vec_out = reinterpret_cast<unsigned char*>(out);
 			
 			cv::Mat outMat(gray_.rows, gray_.cols, gray_.type());
 			memcpy(outMat.data, vec_out, DATA_SIZE);
