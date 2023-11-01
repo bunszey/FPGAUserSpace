@@ -8,6 +8,10 @@
 
 #include "xexample.h"
 
+#define XST_FAILURE 1L
+
+#define DATA_SIZE 307200
+
 class ImageSubscriber : public rclcpp::Node
 {
 	public:
@@ -44,7 +48,7 @@ class ImageSubscriber : public rclcpp::Node
 			// Cleanup
 			XExample_DisableAutoRestart(&ip_inst);
 			XExample_Release(&ip_inst);
-			cleanup_platform();
+			//cleanup_platform();
 		}
 
 	private:
