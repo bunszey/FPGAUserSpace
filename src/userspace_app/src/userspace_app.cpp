@@ -8,7 +8,7 @@
 
 #include "xexample.h"
 
-#define XST_FAILURE 1L
+#define XST_FAILURE                     1L
 
 #define DATA_SIZE 307200
 
@@ -75,9 +75,10 @@ class ImageSubscriber : public rclcpp::Node
 		}
 
 		void timer_callback(){
-			std::vector<unsigned char> vec_gray(gray_.begin<unsigned char>(), gray_.end<unsigned char>());
-			
-			XExample_Write_in_r_Bytes(&ip_inst, 0, vec_gray, DATA_SIZE);
+			unsigned char vec_gray[DATA_SIZE];
+			vec_gray = gray_.data;
+
+			XExample_Write_in_r_Bytes(&ip_inst, 0, &vec_gray, DATA_SIZE);
 
 			// Call the IP core function
 			XExample_Start(&ip_inst);
@@ -85,9 +86,11 @@ class ImageSubscriber : public rclcpp::Node
 			// Wait for the IP core to finish
 			while (!XExample_IsDone(&ip_inst));
 
-			std::vector<unsigned char> out;
+			unsigned char out[DATA_SIZE];
 			XExample_Read_out_r_Bytes(&ip_inst, 0, out, DATA_SIZE);
-			cv::Mat res = cv::Mat(out).reshape(0, gray_.rows);
+			cv::Mat outMat(gray_.rows, gray_.cols, gray_.type());
+
+			memcpy(outMat.data, out, DATA_SIZE);
 
 			sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(std_msgs::msg::Header(), "mono8", res).toImageMsg();
 			camera_publisher_->publish(*msg.get());
