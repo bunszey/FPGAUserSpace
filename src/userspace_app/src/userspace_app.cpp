@@ -8,7 +8,6 @@
 
 #include "xexample.h"
 
-#define XST_FAILURE                     1L
 
 #define DATA_SIZE 307200
 
@@ -37,8 +36,7 @@ class ImageSubscriber : public rclcpp::Node
 
 			int status = XExample_Initialize(&ip_inst, instance_name);
 			if (status != XST_SUCCESS) {
-				printf("Error: Could not initialize the IP core.\n");
-				return XST_FAILURE;
+				RCLCPP_INFO(this->get_logger(), "Error: Could not initialize the IP core.");
 			}
 
 
@@ -75,7 +73,7 @@ class ImageSubscriber : public rclcpp::Node
 		}
 
 		void timer_callback(){
-			unsigned char vec_gray[DATA_SIZE];
+			char vec_gray[DATA_SIZE];
 			vec_gray = gray_.data;
 
 			XExample_Write_in_r_Bytes(&ip_inst, 0, &vec_gray, DATA_SIZE);
@@ -86,13 +84,13 @@ class ImageSubscriber : public rclcpp::Node
 			// Wait for the IP core to finish
 			while (!XExample_IsDone(&ip_inst));
 
-			unsigned char out[DATA_SIZE];
+			char out[DATA_SIZE];
 			XExample_Read_out_r_Bytes(&ip_inst, 0, out, DATA_SIZE);
-			cv::Mat outMat(gray_.rows, gray_.cols, gray_.type());
 
+			cv::Mat outMat(gray_.rows, gray_.cols, gray_.type());
 			memcpy(outMat.data, out, DATA_SIZE);
 
-			sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(std_msgs::msg::Header(), "mono8", res).toImageMsg();
+			sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(std_msgs::msg::Header(), "mono8", outMat).toImageMsg();
 			camera_publisher_->publish(*msg.get());
         	std::cout << "Published!" << std::endl;
 		}
