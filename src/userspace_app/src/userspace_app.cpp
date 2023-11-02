@@ -1,110 +1,72 @@
-#include <rclcpp/rclcpp.hpp>
-#include <sensor_msgs/msg/image.hpp>
+#include <stdio.h>
+//#include "platform.h"
+//#include "xil_printf.h"
+#include "xinverter.h"
+//#include "xparameters.h"
 
-#include <cv_bridge/cv_bridge.h>
-#include <vector>
+#define DATA_SIZE 307200//100000//307200
 
-#include <chrono>
-
-#include "xexample.h"
-
-
-#define DATA_SIZE 307200
-
-class ImageSubscriber : public rclcpp::Node
+int main()
 {
-	public:
-		ImageSubscriber() : Node("image_subscriber") {
-			RCLCPP_INFO(this->get_logger(), "Initializing ImageSubscriber node");
+    //init_platform();
+    printf("Hello World\n\r");
 
-			RCLCPP_INFO(this->get_logger(), "Starting camera subscription");
+    XInverter ip_inst;
+    char instance_name[ 20 ];
+	sprintf(instance_name, "inverter");
 
-			camera_subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
-					"/image_raw",
-					10,
-					std::bind(&ImageSubscriber::onImageMsg, this, std::placeholders::_1)
-			);
+	int status = XInverter_Initialize(&ip_inst, instance_name);
+	if (status != XST_SUCCESS) {
+		printf("Error: Could not initialize the IP core.");
+	}
 
-			camera_publisher_ = this->create_publisher<sensor_msgs::msg::Image>(
-					"/image_out",
-					10
-			);
-			timer_ = this->create_wall_timer(std::chrono::milliseconds(100), std::bind(&ImageSubscriber::timer_callback, this));
+    // Perform operations with the IP core here
 
-			char instance_name[ 20 ];
-			sprintf(instance_name, "example");
+    // Test the IP core functionality
+    unsigned char in[DATA_SIZE];
+    unsigned char in_cpy[DATA_SIZE];
+    unsigned char out[DATA_SIZE];
 
-			int status = XExample_Initialize(&ip_inst, instance_name);
-			if (status != XST_SUCCESS) {
-				RCLCPP_INFO(this->get_logger(), "Error: Could not initialize the IP core.");
-			}
+    // Initialize input arrays
+    for (int i = 0; i < DATA_SIZE; i++) {
+        in[i] = i%255;
+    }
 
+    // Call the IP core function
+    XInverter_Write_in_r_Bytes(&ip_inst, 0, in, DATA_SIZE);
+//    XExample_IsIdle(&ip_inst);
+//    XExample_Start(&ip_inst);
+    XInverter_Start(&ip_inst);
 
-		}
+    // Wait for the IP core to finish
+    while (!XInverter_IsDone(&ip_inst));
 
-		~ImageSubscriber(){
-			// Cleanup
-			XExample_DisableAutoRestart(&ip_inst);
-			XExample_Release(&ip_inst);
-		}
+    XInverter_Read_in_r_Bytes(&ip_inst, 0, in_cpy, DATA_SIZE);
+    XInverter_Read_out_r_Bytes(&ip_inst, 0, out, DATA_SIZE);
+    // Check the results
+    int errors = 0;
+    for (int i = 0; i < DATA_SIZE; i++) {
+        int expected = 255 - in[i];
+//        printf("\nin1_cpy[%d]: %d\n",i, in1_cpy[i]);
+//        printf("in2_cpy[%d]: %d\n",i, in2_cpy[i]);
+//        printf("result[%d]: %d\n",i, out[i]);
+        if (out[i] != expected) {
+            errors++;
+        }
+    }
 
-	private:
-		rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr camera_subscription_;
-		rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr camera_publisher_;
-		rclcpp::TimerBase::SharedPtr timer_;
-		XExample ip_inst;
+    if (errors == 0) {
+        printf("Test passed.\n");
+        printf("Data in out array: %d \n", out[DATA_SIZE - 1]);
+        printf("Data in in array: %d \n", in[DATA_SIZE - 1]);
+        printf("Data in in_copy array: %d \n", in_cpy[DATA_SIZE - 1]);
+    } else {
+        printf("Test failed with %d errors.\n", errors);
+    }
 
-		cv::Mat gray_;
-		bool subscribing = false;
+    // Cleanup
+	XInverter_DisableAutoRestart(&ip_inst);
+	XInverter_Release(&ip_inst);
 
-		void onImageMsg(const sensor_msgs::msg::Image::SharedPtr msg) {
-			RCLCPP_INFO(this->get_logger(), "Received image!");
-
-			cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, msg->encoding);
-			cv::Mat img = cv_ptr->image;
-
-			//cv::cvtColor(img, gray_, cv::COLOR_YUV2GRAY_YUY2 );
-			std::vector<cv::Mat> channels(2);
-			cv::split(img, channels);
-
-			gray_ = channels[0];
-			
-			RCLCPP_INFO(this->get_logger(), "Successfully loaded image");
-			subscribing = true;
-		}
-
-		void timer_callback(){
-			if(!subscribing){return;}
-			std::cout << "gray_.size=" << gray_.rows << "x" gray_.cols << << std::endl;
-
-			std::cout << "XExample_Write_in_r_Bytes!" << std::endl;
-			XExample_Write_in_r_Bytes(&ip_inst, 0, gray_.data, DATA_SIZE);
-
-			// Call the IP core function
-			XExample_Start(&ip_inst);
-
-			// Wait for the IP core to finish
-			std::cout << "while (!XExample_IsDone(&ip_inst))!" << std::endl;
-			while (!XExample_IsDone(&ip_inst));
-
-			std::cout << "XExample_Read_out_r_Bytes!" << std::endl;
-			cv::Mat outMat(gray_.rows, gray_.cols, gray_.type());
-			XExample_Read_out_r_Bytes(&ip_inst, 0, outMat.data, DATA_SIZE);
-
-			sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(std_msgs::msg::Header(), "mono8", outMat).toImageMsg();
-			camera_publisher_->publish(*msg.get());
-        	std::cout << "Published!" << std::endl;
-		}
-
-};
-
-int main(int argc, char *argv[])
-{
-	setvbuf(stdout,NULL,_IONBF,BUFSIZ);
-
-	rclcpp::init(argc,argv);
-	rclcpp::spin(std::make_shared<ImageSubscriber>());
-
-	rclcpp::shutdown();
-	return 0;
+    return XST_SUCCESS;
 }

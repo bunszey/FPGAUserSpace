@@ -5,7 +5,7 @@
 #ifdef __linux__
 
 /***************************** Include Files *********************************/
-#include "xexample.h"
+#include "xinverter.h"
 
 /***************** Macros (Inline Functions) Definitions *********************/
 #define MAX_UIO_PATH_SIZE       256
@@ -17,18 +17,18 @@
 typedef struct {
     u64 addr;
     u32 size;
-} XExample_uio_map;
+} XInverter_uio_map;
 
 typedef struct {
     int  uio_fd;
     int  uio_num;
     char name[ MAX_UIO_NAME_SIZE ];
     char version[ MAX_UIO_NAME_SIZE ];
-    XExample_uio_map maps[ MAX_UIO_MAPS ];
-} XExample_uio_info;
+    XInverter_uio_map maps[ MAX_UIO_MAPS ];
+} XInverter_uio_info;
 
 /***************** Variable Definitions **************************************/
-static XExample_uio_info uio_info;
+static XInverter_uio_info uio_info;
 
 /************************** Function Implementation *************************/
 static int line_from_file(char* filename, char* linebuf) {
@@ -46,19 +46,19 @@ static int line_from_file(char* filename, char* linebuf) {
     return 0;
 }
 
-static int uio_info_read_name(XExample_uio_info* info) {
+static int uio_info_read_name(XInverter_uio_info* info) {
     char file[ MAX_UIO_PATH_SIZE ];
     sprintf(file, "/sys/class/uio/uio%d/name", info->uio_num);
     return line_from_file(file, info->name);
 }
 
-static int uio_info_read_version(XExample_uio_info* info) {
+static int uio_info_read_version(XInverter_uio_info* info) {
     char file[ MAX_UIO_PATH_SIZE ];
     sprintf(file, "/sys/class/uio/uio%d/version", info->uio_num);
     return line_from_file(file, info->version);
 }
 
-static int uio_info_read_map_addr(XExample_uio_info* info, int n) {
+static int uio_info_read_map_addr(XInverter_uio_info* info, int n) {
     int ret;
     char file[ MAX_UIO_PATH_SIZE ];
     info->maps[n].addr = UIO_INVALID_ADDR;
@@ -71,7 +71,7 @@ static int uio_info_read_map_addr(XExample_uio_info* info, int n) {
     return 0;
 }
 
-static int uio_info_read_map_size(XExample_uio_info* info, int n) {
+static int uio_info_read_map_size(XInverter_uio_info* info, int n) {
     int ret;
     char file[ MAX_UIO_PATH_SIZE ];
     sprintf(file, "/sys/class/uio/uio%d/maps/map%d/size", info->uio_num, n);
@@ -83,8 +83,8 @@ static int uio_info_read_map_size(XExample_uio_info* info, int n) {
     return 0;
 }
 
-int XExample_Initialize(XExample *InstancePtr, const char* InstanceName) {
-	XExample_uio_info *InfoPtr = &uio_info;
+int XInverter_Initialize(XInverter *InstancePtr, const char* InstanceName) {
+	XInverter_uio_info *InfoPtr = &uio_info;
 	struct dirent **namelist;
     int i, n;
     char* s;
@@ -131,8 +131,8 @@ int XExample_Initialize(XExample *InstancePtr, const char* InstanceName) {
     return XST_SUCCESS;
 }
 
-int XExample_Release(XExample *InstancePtr) {
-	XExample_uio_info *InfoPtr = &uio_info;
+int XInverter_Release(XInverter *InstancePtr) {
+	XInverter_uio_info *InfoPtr = &uio_info;
 
     assert(InstancePtr != NULL);
     assert(InstancePtr->IsReady == XIL_COMPONENT_IS_READY);
