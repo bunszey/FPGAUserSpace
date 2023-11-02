@@ -25,9 +25,9 @@ find_package(cv_bridge REQUIRED)
 # Add your source files here
 add_executable(userspace_app
 	src/userspace_app.cpp
-    src/xexample.c
-    src/xexample_linux.c
-    src/xexample_sinit.c
+    src/xinverter.c
+    src/xinverter_linux.c
+    src/xinverter_sinit.c
 )
 
 # Add the header files to the target_include_directories
