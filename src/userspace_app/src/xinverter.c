@@ -138,7 +138,7 @@ u32 XInverter_Read_in_r_Words(XInverter *InstancePtr, int offset, word_type *dat
     return length;
 }
 
-u32 XInverter_Write_in_r_Bytes(XInverter *InstancePtr, int offset, char *data, int length) {
+u32 XInverter_Write_in_r_Bytes(XInverter *InstancePtr, int offset, unsigned char *data, int length) {
     Xil_AssertNonvoid(InstancePtr != NULL);
     Xil_AssertNonvoid(InstancePtr -> IsReady == XIL_COMPONENT_IS_READY);
 
@@ -148,12 +148,12 @@ u32 XInverter_Write_in_r_Bytes(XInverter *InstancePtr, int offset, char *data, i
         return 0;
 
     for (i = 0; i < length; i++) {
-        *(char *)(InstancePtr->Axi_cpu_BaseAddress + XINVERTER_AXI_CPU_ADDR_IN_R_BASE + offset + i) = *(data + i);
+        *(unsigned char *)(InstancePtr->Axi_cpu_BaseAddress + XINVERTER_AXI_CPU_ADDR_IN_R_BASE + offset + i) = *(data + i);
     }
     return length;
 }
 
-u32 XInverter_Read_in_r_Bytes(XInverter *InstancePtr, int offset, char *data, int length) {
+u32 XInverter_Read_in_r_Bytes(XInverter *InstancePtr, int offset, unsigned char *data, int length) {
     Xil_AssertNonvoid(InstancePtr != NULL);
     Xil_AssertNonvoid(InstancePtr -> IsReady == XIL_COMPONENT_IS_READY);
 
@@ -163,7 +163,7 @@ u32 XInverter_Read_in_r_Bytes(XInverter *InstancePtr, int offset, char *data, in
         return 0;
 
     for (i = 0; i < length; i++) {
-        *(data + i) = *(char *)(InstancePtr->Axi_cpu_BaseAddress + XINVERTER_AXI_CPU_ADDR_IN_R_BASE + offset + i);
+        *(data + i) = *(unsigned char *)(InstancePtr->Axi_cpu_BaseAddress + XINVERTER_AXI_CPU_ADDR_IN_R_BASE + offset + i);
     }
     return length;
 }
@@ -233,7 +233,7 @@ u32 XInverter_Read_out_r_Words(XInverter *InstancePtr, int offset, word_type *da
     return length;
 }
 
-u32 XInverter_Write_out_r_Bytes(XInverter *InstancePtr, int offset, char *data, int length) {
+u32 XInverter_Write_out_r_Bytes(XInverter *InstancePtr, int offset, unsigned char *data, int length) {
     Xil_AssertNonvoid(InstancePtr != NULL);
     Xil_AssertNonvoid(InstancePtr -> IsReady == XIL_COMPONENT_IS_READY);
 
@@ -243,12 +243,12 @@ u32 XInverter_Write_out_r_Bytes(XInverter *InstancePtr, int offset, char *data, 
         return 0;
 
     for (i = 0; i < length; i++) {
-        *(char *)(InstancePtr->Axi_cpu_BaseAddress + XINVERTER_AXI_CPU_ADDR_OUT_R_BASE + offset + i) = *(data + i);
+        *(unsigned char *)(InstancePtr->Axi_cpu_BaseAddress + XINVERTER_AXI_CPU_ADDR_OUT_R_BASE + offset + i) = *(data + i);
     }
     return length;
 }
 
-u32 XInverter_Read_out_r_Bytes(XInverter *InstancePtr, int offset, char *data, int length) {
+u32 XInverter_Read_out_r_Bytes(XInverter *InstancePtr, int offset, unsigned char *data, int length) {
     Xil_AssertNonvoid(InstancePtr != NULL);
     Xil_AssertNonvoid(InstancePtr -> IsReady == XIL_COMPONENT_IS_READY);
 
@@ -258,7 +258,7 @@ u32 XInverter_Read_out_r_Bytes(XInverter *InstancePtr, int offset, char *data, i
         return 0;
 
     for (i = 0; i < length; i++) {
-        *(data + i) = *(char *)(InstancePtr->Axi_cpu_BaseAddress + XINVERTER_AXI_CPU_ADDR_OUT_R_BASE + offset + i);
+        *(data + i) = *(unsigned char *)(InstancePtr->Axi_cpu_BaseAddress + XINVERTER_AXI_CPU_ADDR_OUT_R_BASE + offset + i);
     }
     return length;
 }
