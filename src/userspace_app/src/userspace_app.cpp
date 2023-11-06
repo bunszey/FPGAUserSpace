@@ -17,7 +17,9 @@ int main()
 
 	int status = XInverter_Initialize(&ip_inst, instance_name);
 	if (status != XST_SUCCESS) {
-		printf("Error: Could not initialize the IP core.");
+		printf("Error: Could not initialize the IP core.\n\r");
+	} else {
+		printf("Initialized the IP core.\n\r");
 	}
 
     // Perform operations with the IP core here

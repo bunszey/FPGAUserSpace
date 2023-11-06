@@ -1,0 +1,27 @@
+/usb_cam:
+  ros__parameters:
+    auto_white_balance: true
+    autoexposure: true
+    autofocus: false
+    brightness: 50
+    camera_info_url: ''
+    camera_name: default_cam
+    contrast: -1
+    exposure: 100
+    focus: -1
+    frame_id: default_cam
+    framerate: 30.0
+    gain: -1
+    image_height: 480
+    image_raw:
+      format: jpeg
+      jpeg_quality: 95
+      png_level: 3
+    image_width: 640
+    io_method: mmap
+    pixel_format: yuyv
+    saturation: -1
+    sharpness: -1
+    use_sim_time: false
+    video_device: /dev/video0
+    white_balance: 4000
