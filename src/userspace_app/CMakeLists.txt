@@ -25,9 +25,10 @@ find_package(cv_bridge REQUIRED)
 # Add your source files here
 add_executable(userspace_app
 	src/userspace_app.cpp
-    src/xexample.c
-    src/xexample_linux.c
-    src/xexample_sinit.c
+    src/libs/xinverter.c
+    src/libs/xinverter.c
+    src/libs/xinverter_sinit.c
+    src/BRAM-uio-driver/src/bram_uio.cpp
 )
 
 # Add the header files to the target_include_directories
