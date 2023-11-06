@@ -69,6 +69,7 @@ class ImageSubscriber : public rclcpp::Node
 
 		cv::Mat gray_;
 		bool subscribing = false;
+        int noOfPixels = 0;
 
 		void onImageMsg(const sensor_msgs::msg::Image::SharedPtr msg) {
 			RCLCPP_INFO(this->get_logger(), "Received image!");
@@ -82,7 +83,14 @@ class ImageSubscriber : public rclcpp::Node
 
 			gray_ = channels[0];
 
-            for (int i = 0; i < DATA_SIZE; i++) {
+            noOfPixels = gray_.rows * gray_.cols;
+            if (noOfPixels > DATA_SIZE){
+                RCLCPP_INFO(this->get_logger(), "WONG SIZE!");
+                subscribing = false;
+                return;
+            }
+
+            for (int i = 0; i < noOfPixels; i++) {
                 uint32_t data_write = *(reinterpret_cast<uint32_t*>(&gray_.data[i*4]));
                 BRAM1[i] = data_write;
 		    }
@@ -97,10 +105,7 @@ class ImageSubscriber : public rclcpp::Node
 
 			cv::Mat outMat(gray_.rows, gray_.cols, gray_.type());
 
-            if (DATA_SIZE != gray_.rows * gray_.cols)
-                std::cout << "WONG SIZE!" << std::endl;
-
-            for (int i = 0; i < DATA_SIZE; i++) {
+            for (int i = 0; i < noOfPixels; i++) {
                 int data_read = BRAM2[i];
 
                 unsigned char* data_r_bytes = (unsigned char*)&data_read;
@@ -113,7 +118,7 @@ class ImageSubscriber : public rclcpp::Node
 
 			sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(std_msgs::msg::Header(), "mono8", outMat).toImageMsg();
 			camera_publisher_->publish(*msg.get());
-        	std::cout << "Published!" << std::endl;
+        	RCLCPP_INFO(this->get_logger(), "Published!");
 		}
 
 };
